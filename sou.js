@@ -1,75 +1,47 @@
-/*
-作者:D.Young
-主页：https://yyv.me/
-github：https://github.com/5iux/sou
-日期：2019-07-26
-版权所有，请勿删除
-*/
-
-/*
-编辑：Davis
-日期：2020-3-25
-主要目的是为了去掉谷歌，改为大陆可用的必应、搜狗。
-*/
-
-
-$(document).ready(function() {
-    //判断窗口大小，添加输入框自动完成
-    var wid = $("body").width();
-    if (wid < 640) {
-        $(".wd").attr('autocomplete', 'off');
-    }else{
-        $(".wd").focus();
-    }
-    //按钮
-    $(".sou li").click(function() {
-        var dt = $(this).attr('data-s');
-        wd = $(".wd").val();
-        if (dt == "bing") {
-            if (wd == "" || wd == null) {
-                window.location.href = "https://cn.bing.com/?mkt=zh-CN";
-            } else {
-                $(".t").val("bing");
-                $("form").submit();
+//关键词sug
+$(function() {
+    //当键盘键被松开时发送Ajax获取数据
+    $('#search-text').keyup(function() {
+        var keywords = $(this).val();
+        if (keywords == '') { $('#word').hide(); return };
+        $.ajax({
+            url: 'https://suggestion.baidu.com/su?wd=' + keywords,
+            dataType: 'jsonp',
+            jsonp: 'cb', //回调函数的参数名(键值)key
+            // jsonpCallback: 'fun', //回调函数名(值) value
+            beforeSend: function() {
+                // $('#word').append('<li>正在加载。。。</li>');
+            },
+            success: function(data) {
+                $('#word').empty().show();
+                if (data.s == '') {
+                    //$('#word').append('<div class="error">Not find  "' + keywords + '"</div>');
+                    $('#word').empty();
+                    $('#word').hide();
+                }
+                $.each(data.s, function() {
+                    $('#word').append('<li>' + this + '</li>');
+                })
+            },
+            error: function() {
+                $('#word').empty().show();
+                //$('#word').append('<div class="click_work">Fail "' + keywords + '"</div>');
+                $('#word').hide();
             }
-        } 
-        if (dt == "baidu") {
+        })
+    })
+    //点击搜索数据复制给搜索框
+    $(document).on('click', '#word li', function() {
+        var word = $(this).text();
+        $('#search-text').val(word);
+        $('#word').empty();
+        $('#word').hide();
+        //$("form").submit();
+         $('.submit').trigger('click');//触发搜索事件
+    })
+    $(document).on('click', '.container,.banner-video,nav', function() {
+        $('#word').empty();
+        $('#word').hide();
+    })
 
-            if (wd == "" || wd == null) {
-                window.location.href = "https://www.baidu.com";
-            } else {
-                $(".t").val("baidu");
-                $("form").submit();
-            }
-        	}
-        if (dt == "sogou") {
-
-            if (wd == "" || wd == null) {
-                window.location.href = "https://www.sogou.com";
-            } else {
-                $(".t").val("sogou");
-                $("form").submit();
-            }
-        	}
-
-    });
-    //菜单点击
-    $("#menu").click(function(event) {
-        $(this).toggleClass('on');
-        $(".list").toggleClass('closed');
-        $(".mywth").toggleClass('hidden');
-    });
-    $("#content").click(function(event) {
-        $(".on").removeClass('on');
-        $(".list").addClass('closed');
-        $(".mywth").removeClass('hidden');
-    });
-    $(".mywth").click(function(event) {
-        var wt = $("body").width();
-        if (wt < 750 || wt == 750) {
-            //window.location.href = "https://tianqi.qq.com/";
-            window.location.href = "/weather/";
-        }
-    });
-});
-
+})
